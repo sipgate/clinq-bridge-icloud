@@ -1,4 +1,5 @@
 import { Adapter, Config, Contact, PhoneNumber, PhoneNumberLabel } from "@clinq/bridge";
+import * as ICloud from "apple-icloud";
 import { getICloudContacts, getICloudSession } from "./icloud";
 import { ICloudContact, ICloudPhoneNumberLabel } from "./model/icloud.model";
 
@@ -38,7 +39,7 @@ function mapPhoneNumbers(c: ICloudContact): PhoneNumber[] {
 
 function convertToClinqContacts(icloudContacts: ICloudContact[]): Contact[] {
 	return icloudContacts.map(c => {
-		const phoneNumbers = mapPhoneNumbers(c);
+		const phoneNumbers: PhoneNumber[] = mapPhoneNumbers(c);
 		return {
 			id: c.contactId || null,
 			name: null,
@@ -55,8 +56,8 @@ function convertToClinqContacts(icloudContacts: ICloudContact[]): Contact[] {
 
 export class ICloudAdapter implements Adapter {
 	public async getContacts(config: Config): Promise<Contact[]> {
-		const session = await getICloudSession(config);
-		const contacts = await getICloudContacts(session);
+		const session: ICloud = await getICloudSession(config);
+		const contacts: ICloudContact[] = await getICloudContacts(session);
 		return convertToClinqContacts(contacts);
 	}
 }

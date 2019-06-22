@@ -1,14 +1,14 @@
-import * as ICloud from "apple-icloud";
 import { Config } from "@clinq/bridge";
+import * as ICloud from "apple-icloud";
 import { ICloudContact } from "../model/icloud.model";
 
-const sessions = new Map<string, ICloud>();
+const sessions: Map<string, ICloud> = new Map<string, ICloud>();
 
 async function getOrCreateUserSession(config: Config): Promise<ICloud> {
 	return new Promise((resolve, reject) => {
 		const [username, password] = config.apiKey.split(":");
-		const cachedSession = sessions.get(config.apiKey);
-		const instance = new ICloud(cachedSession || {}, username, password);
+		const cachedSession: ICloud = sessions.get(config.apiKey);
+		const instance: ICloud = new ICloud(cachedSession || {}, username, password);
 		if (cachedSession) {
 			console.log("Found cached iCloud session for", instance.clientId);
 			resolve(instance);
@@ -24,7 +24,7 @@ async function getOrCreateUserSession(config: Config): Promise<ICloud> {
 			console.log("iCloud client ready", instance.clientId);
 			resolve(instance);
 		});
-		instance.on("sessionUpdate", function() {
+		instance.on("sessionUpdate", () => {
 			console.log("Session updated", instance.clientId);
 			sessions.set(config.apiKey, instance.exportSession());
 		});
@@ -32,14 +32,14 @@ async function getOrCreateUserSession(config: Config): Promise<ICloud> {
 }
 
 export async function getICloudSession(config: Config): Promise<ICloud> {
-	const userSession = await getOrCreateUserSession(config);
+	const userSession: ICloud = await getOrCreateUserSession(config);
 	return userSession;
 }
 
 export async function getICloudContacts(iCloudSession: ICloud): Promise<ICloudContact[]> {
 	console.log("Fetching iCloud contacts for", iCloudSession.clientId);
-	const iCloudContacts = await iCloudSession.Contacts.list();
-	const contacts = iCloudContacts.contacts;
+	const iCloudContacts: { contacts: ICloudContact[] } = await iCloudSession.Contacts.list();
+	const contacts: ICloudContact[] = iCloudContacts.contacts;
 	// console.log(`Found ${contacts.length} iCloud contacts for ${iCloudSession.clientId}`, contacts);
 	return contacts;
 }

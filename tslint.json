@@ -11,7 +11,9 @@
 		"semicolon": true,
 		"no-implicit-dependencies": false,
 		"interface-name": false,
+		"object-literal-sort-keys": false,
 		"no-any": true,
+		"no-console":false,
 		"quotemark": [true, "double"]
 	}
 }
