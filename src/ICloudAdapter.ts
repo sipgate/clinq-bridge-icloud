@@ -1,9 +1,8 @@
 import { Adapter, Config, Contact } from "@clinq/bridge";
-import { getSession, getContacts } from "./icloud";
+import { getICloudContacts, getICloudSession } from "./icloud";
 
 function mapToClinqContacts(icloudContacts: any): Contact[] {
 	const { contacts } = icloudContacts;
-	console.log("Mapping icloud contacts", contacts);
 	const mapped = contacts.map(c => {
 		const phoneNumbers = c.phones
 			? c.phones.map(p => ({
@@ -24,14 +23,13 @@ function mapToClinqContacts(icloudContacts: any): Contact[] {
 		};
 	});
 
-	console.log("Mapped contacts", mapped);
 	return mapped;
 }
 
 export class ICloudAdapter implements Adapter {
 	public async getContacts(config: Config): Promise<Contact[]> {
-		const session = await getSession(config);
-		const contacts = await getContacts(session);
+		const session = await getICloudSession(config);
+		const contacts = await getICloudContacts(session);
 		return mapToClinqContacts(contacts);
 	}
 }

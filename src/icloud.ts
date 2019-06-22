@@ -1,9 +1,9 @@
-import * as iCloud from "apple-icloud";
+import * as ICloud from "apple-icloud";
 import { Config } from "@clinq/bridge";
 
 const SESSION_PATH = "/tmp/session.json";
 
-async function initSession(instance: any) {
+async function initSession(instance: ICloud): Promise<ICloud> {
 	return new Promise((resolve, reject) => {
 		instance.on("err", function(err) {
 			reject(err);
@@ -17,13 +17,14 @@ async function initSession(instance: any) {
 	});
 }
 
-export async function getSession(config: Config) {
+export async function getICloudSession(config: Config): ICloud {
 	const [username, password] = config.apiKey.split(":");
-	const iCloudInstance = new iCloud(SESSION_PATH, username, password);
-	return await initSession(iCloudInstance);
+	const instance = new ICloud(SESSION_PATH, username, password);
+	return await initSession(instance);
 }
 
-export async function getContacts(iCloudSession: any) {
-	console.log("Get contact for", iCloudSession.clientId);
-	return await iCloudSession.Contacts.list();
+export async function getICloudContacts(iCloudSession: ICloud) {
+	const iCloudContacts = await iCloudSession.Contacts.list();
+	console.log(`Found ${iCloudContacts.contacts.length} iCloud contacts for ${iCloudSession.clientId}`);
+	return iCloudContacts;
 }
