@@ -28,7 +28,6 @@ function parseEmailAddress(c: ICloudContact): string {
 }
 
 function mapPhoneNumbers(c: ICloudContact): PhoneNumber[] {
-	console.log("Mapping phone numbers", c.phones);
 	return c.phones
 		? c.phones.map(p => ({
 				phoneNumber: p.field,
@@ -37,12 +36,12 @@ function mapPhoneNumbers(c: ICloudContact): PhoneNumber[] {
 		: [];
 }
 
-function mapToClinqContacts(icloudContacts: ICloudContact[]): Contact[] {
+function convertToClinqContacts(icloudContacts: ICloudContact[]): Contact[] {
 	return icloudContacts.map(c => {
 		const phoneNumbers = mapPhoneNumbers(c);
 		return {
 			id: c.contactId || null,
-			name: `${c.firstName} ${c.lastName}` || null,
+			name: null,
 			firstName: c.firstName || null,
 			lastName: c.lastName || null,
 			organization: c.companyName || null,
@@ -58,6 +57,8 @@ export class ICloudAdapter implements Adapter {
 	public async getContacts(config: Config): Promise<Contact[]> {
 		const session = await getICloudSession(config);
 		const contacts = await getICloudContacts(session);
-		return mapToClinqContacts(contacts);
+		return convertToClinqContacts(contacts);
 	}
 }
+
+

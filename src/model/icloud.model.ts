@@ -1,6 +1,6 @@
 export interface ICloudContact {
-	firstName: string;
-	lastName: string;
+	firstName?: string;
+	lastName?: string;
 	notes: string;
 	contactId: string;
 	normalized: string;
