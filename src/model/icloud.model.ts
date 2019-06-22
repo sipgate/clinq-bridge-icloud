@@ -19,3 +19,14 @@ export interface ICloudContact {
 	isCompany: boolean;
 	suffix: string;
 }
+
+export enum ICloudPhoneNumberLabel {
+	HOME = "HOME",
+	WORK = "WORK",
+	MOBILE = "MOBILE",
+	HOMEFAX = "HOMEFAX",
+	WORKFAX = "WORKFAX",
+	PAGER = "PAGER",
+	MAIN = "MAIN",
+	OTHER = "OTHER"
+}

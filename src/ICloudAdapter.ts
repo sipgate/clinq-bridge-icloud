@@ -1,15 +1,25 @@
 import { Adapter, Config, Contact, PhoneNumber, PhoneNumberLabel } from "@clinq/bridge";
 import { getICloudContacts, getICloudSession } from "./icloud";
-import { ICloudContact } from "./model/icloud.model";
+import { ICloudContact, ICloudPhoneNumberLabel } from "./model/icloud.model";
 
-function parsePhoneNumberLabel(label: string = ""): PhoneNumberLabel {
-	switch (label.toLowerCase()) {
-		case "mobile":
-			return PhoneNumberLabel.MOBILE;
-		case "home":
-			return PhoneNumberLabel.HOME;
+function parsePhoneNumberLabel(label: string): ICloudPhoneNumberLabel {
+	switch (label) {
+		case "HOME":
+			return ICloudPhoneNumberLabel.HOME;
+		case "WORK":
+			return ICloudPhoneNumberLabel.WORK;
+		case "MOBILE":
+		case "IPHONE":
+			return ICloudPhoneNumberLabel.MOBILE;
+		case "HOME FAX":
+			return ICloudPhoneNumberLabel.HOMEFAX;
+		case "WORK FAX":
+			return ICloudPhoneNumberLabel.WORKFAX;
+		case "OTHER":
+			return ICloudPhoneNumberLabel.OTHER;
 		default:
-			return PhoneNumberLabel.WORK;
+			// hack to allow all labels
+			return ((label || ICloudPhoneNumberLabel.OTHER) as unknown) as ICloudPhoneNumberLabel;
 	}
 }
 
@@ -18,10 +28,11 @@ function parseEmailAddress(c: ICloudContact): string {
 }
 
 function mapPhoneNumbers(c: ICloudContact): PhoneNumber[] {
+	console.log("Mapping phone numbers", c.phones);
 	return c.phones
 		? c.phones.map(p => ({
 				phoneNumber: p.field,
-				label: parsePhoneNumberLabel(p.label)
+				label: (parsePhoneNumberLabel(p.label) as unknown) as PhoneNumberLabel
 		  }))
 		: [];
 }
@@ -30,10 +41,10 @@ function mapToClinqContacts(icloudContacts: ICloudContact[]): Contact[] {
 	return icloudContacts.map(c => {
 		const phoneNumbers = mapPhoneNumbers(c);
 		return {
-			id: c.contactId|| null,
-			name: `${c.firstName} ${c.lastName}`|| null,
-			firstName: c.firstName|| null,
-			lastName: c.lastName|| null,
+			id: c.contactId || null,
+			name: `${c.firstName} ${c.lastName}` || null,
+			firstName: c.firstName || null,
+			lastName: c.lastName || null,
 			organization: c.companyName || null,
 			email: parseEmailAddress(c),
 			phoneNumbers,
@@ -50,4 +61,3 @@ export class ICloudAdapter implements Adapter {
 		return mapToClinqContacts(contacts);
 	}
 }
-
