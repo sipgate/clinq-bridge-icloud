@@ -1,29 +1,46 @@
-import { Adapter, Config, Contact } from "@clinq/bridge";
+import { Adapter, Config, Contact, PhoneNumber, PhoneNumberLabel } from "@clinq/bridge";
 import { getICloudContacts, getICloudSession } from "./icloud";
+import { ICloudContact } from "./model/icloud.model";
 
-function mapToClinqContacts(icloudContacts: any): Contact[] {
-	const { contacts } = icloudContacts;
-	const mapped = contacts.map(c => {
-		const phoneNumbers = c.phones
-			? c.phones.map(p => ({
-					phoneNumber: p.field,
-					label: p.label
-			  }))
-			: [];
+function parsePhoneNumberLabel(label: string = ""): PhoneNumberLabel {
+	switch (label.toLowerCase()) {
+		case "mobile":
+			return PhoneNumberLabel.MOBILE;
+		case "home":
+			return PhoneNumberLabel.HOME;
+		default:
+			return PhoneNumberLabel.WORK;
+	}
+}
+
+function parseEmailAddress(c: ICloudContact): string {
+	return c.emailAddresses ? c.emailAddresses.map(e => e.field).find(e => Boolean(e)) : null;
+}
+
+function mapPhoneNumbers(c: ICloudContact): PhoneNumber[] {
+	return c.phones
+		? c.phones.map(p => ({
+				phoneNumber: p.field,
+				label: parsePhoneNumberLabel(p.label)
+		  }))
+		: [];
+}
+
+function mapToClinqContacts(icloudContacts: ICloudContact[]): Contact[] {
+	return icloudContacts.map(c => {
+		const phoneNumbers = mapPhoneNumbers(c);
 		return {
 			id: c.contactId,
-			name: null,
+			name: `${c.firstName} ${c.lastName}`,
 			firstName: c.firstName,
 			lastName: c.lastName,
 			organization: c.companyName || null,
-			email: null,
+			email: parseEmailAddress(c),
 			phoneNumbers,
 			contactUrl: null,
 			avatarUrl: null
 		};
 	});
-
-	return mapped;
 }
 
 export class ICloudAdapter implements Adapter {
@@ -33,3 +50,4 @@ export class ICloudAdapter implements Adapter {
 		return mapToClinqContacts(contacts);
 	}
 }
+
