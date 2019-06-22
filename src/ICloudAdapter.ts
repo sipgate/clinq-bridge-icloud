@@ -30,10 +30,10 @@ function mapToClinqContacts(icloudContacts: ICloudContact[]): Contact[] {
 	return icloudContacts.map(c => {
 		const phoneNumbers = mapPhoneNumbers(c);
 		return {
-			id: c.contactId,
-			name: `${c.firstName} ${c.lastName}`,
-			firstName: c.firstName,
-			lastName: c.lastName,
+			id: c.contactId|| null,
+			name: `${c.firstName} ${c.lastName}`|| null,
+			firstName: c.firstName|| null,
+			lastName: c.lastName|| null,
 			organization: c.companyName || null,
 			email: parseEmailAddress(c),
 			phoneNumbers,
