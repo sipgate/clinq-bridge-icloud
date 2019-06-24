@@ -34,10 +34,8 @@ export function getICloudPhoneNumberLabel(label: string): string {
 		case ICloudPhoneNumberLabel.WORKFAX:
 			return "WORK FAX";
 		default:
-			// hack to allow all labels
-			return ((label || ICloudPhoneNumberLabel.OTHER) as unknown) as ICloudPhoneNumberLabel;
+			return label || ICloudPhoneNumberLabel.OTHER;
 	}
-	return label;
 }
 
 function parseEmailAddress(c: ICloudContact): string {

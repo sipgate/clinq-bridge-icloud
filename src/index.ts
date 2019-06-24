@@ -1,4 +1,6 @@
 import { start } from "@clinq/bridge";
 import { ICloudAdapter } from "./ICloudAdapter";
 
-start(new ICloudAdapter());
+const redisUrl: string = process.env.REDIS_URL;
+
+start(new ICloudAdapter(redisUrl));

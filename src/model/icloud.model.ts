@@ -30,3 +30,27 @@ export enum ICloudPhoneNumberLabel {
 	MAIN = "MAIN",
 	OTHER = "OTHER"
 }
+
+export interface IExportedCloudSession {
+	username: string;
+	password: string;
+	twoFactorAuthentication: boolean;
+	securityCode: string;
+	auth: {
+		token: string;
+		xAppleTwosvTrustToken: string;
+		cookies: any[];
+		created: number;
+	};
+	clientId: string;
+	push: {
+		topics: any[];
+		token: string;
+		ttl: number;
+		courierUrl: string;
+		registered: any[];
+	};
+	account: any;
+	logins: any[];
+	clientSettings: any;
+}
