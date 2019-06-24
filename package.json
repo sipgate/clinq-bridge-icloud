@@ -14,7 +14,7 @@
 	"license": "Apache-2.0",
 	"scripts": {
 		"postinstall": "tsc",
-		"start": "ts-node-dev src/index.ts"
+		"start": "ts-node-dev --respawn src/index.ts"
 	},
 	"dependencies": {
 		"@clinq/bridge": "^10.0.7",
