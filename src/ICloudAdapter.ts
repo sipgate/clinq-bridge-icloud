@@ -1,65 +1,45 @@
-import { Adapter, Config, Contact, PhoneNumber, PhoneNumberLabel } from "@clinq/bridge";
+import { Adapter, Config, Contact, ContactUpdate } from "@clinq/bridge";
 import * as ICloud from "apple-icloud";
-import { getICloudContacts, getICloudSession } from "./icloud";
-import { ICloudContact, ICloudPhoneNumberLabel } from "./model/icloud.model";
-
-function parsePhoneNumberLabel(label: string): ICloudPhoneNumberLabel {
-	switch (label) {
-		case "HOME":
-			return ICloudPhoneNumberLabel.HOME;
-		case "WORK":
-			return ICloudPhoneNumberLabel.WORK;
-		case "MOBILE":
-		case "IPHONE":
-			return ICloudPhoneNumberLabel.MOBILE;
-		case "HOME FAX":
-			return ICloudPhoneNumberLabel.HOMEFAX;
-		case "WORK FAX":
-			return ICloudPhoneNumberLabel.WORKFAX;
-		case "OTHER":
-			return ICloudPhoneNumberLabel.OTHER;
-		default:
-			// hack to allow all labels
-			return ((label || ICloudPhoneNumberLabel.OTHER) as unknown) as ICloudPhoneNumberLabel;
-	}
-}
-
-function parseEmailAddress(c: ICloudContact): string {
-	return c.emailAddresses ? c.emailAddresses.map(e => e.field).find(e => Boolean(e)) : null;
-}
-
-function mapPhoneNumbers(c: ICloudContact): PhoneNumber[] {
-	return c.phones
-		? c.phones.map(p => ({
-				phoneNumber: p.field,
-				label: (parsePhoneNumberLabel(p.label) as unknown) as PhoneNumberLabel
-		  }))
-		: [];
-}
-
-function convertToClinqContacts(icloudContacts: ICloudContact[]): Contact[] {
-	return icloudContacts.map(c => {
-		const phoneNumbers: PhoneNumber[] = mapPhoneNumbers(c);
-		return {
-			id: c.contactId || null,
-			name: null,
-			firstName: c.firstName || null,
-			lastName: c.lastName || null,
-			organization: c.companyName || null,
-			email: parseEmailAddress(c),
-			phoneNumbers,
-			contactUrl: null,
-			avatarUrl: null
-		};
-	});
-}
+import { deleteICloudContact, getAllICloudContacts, getICloudSession, updateICloudContact } from "./icloud";
+import { convertToClinqContact, getICloudPhoneNumberLabel } from "./mapper";
+import { ICloudContact } from "./model/icloud.model";
 
 export class ICloudAdapter implements Adapter {
 	public async getContacts(config: Config): Promise<Contact[]> {
 		const session: ICloud = await getICloudSession(config);
-		const contacts: ICloudContact[] = await getICloudContacts(session);
-		return convertToClinqContacts(contacts);
+		const contacts: ICloudContact[] = await getAllICloudContacts(session);
+		return contacts.map(convertToClinqContact);
+	}
+
+	// public async createContact (config: Config, contact: ContactTemplate): Promise<Contact>{
+
+	// 	return {};
+	// }
+
+	public async deleteContact(config: Config, id: string): Promise<void> {
+		const session: ICloud = await getICloudSession(config);
+		const contacts: ICloudContact[] = await getAllICloudContacts(session);
+		const contactToDelete: ICloudContact = contacts.find(c => c.contactId === id);
+		await deleteICloudContact(session, contactToDelete);
+	}
+
+	public async updateContact(config: Config, id: string, contact: ContactUpdate): Promise<Contact> {
+		const session: ICloud = await getICloudSession(config);
+		const contacts: ICloudContact[] = await getAllICloudContacts(session);
+		const contactToUpdate: ICloudContact = contacts.find(c => c.contactId === contact.id);
+		if (!contactToUpdate) {
+			throw new Error("Contact unknown");
+		}
+		const updatedContact: ICloudContact = await updateICloudContact(session, {
+			...contactToUpdate,
+			firstName: contact.firstName,
+			lastName: contact.lastName,
+			companyName: contact.organization,
+			phones: contact.phoneNumbers.map(p => ({
+				field: p.phoneNumber,
+				label: getICloudPhoneNumberLabel(p.label)
+			}))
+		});
+		return convertToClinqContact(updatedContact);
 	}
 }
-
-
