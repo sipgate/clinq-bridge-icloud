@@ -1,6 +1,6 @@
 import { Config } from "@clinq/bridge";
 import * as ICloud from "apple-icloud";
-import { IExportedCloudSession } from "../model/icloud.model";
+import { IExportedCloudSession as ExportedICloudSession } from "../model/icloud.model";
 import { PromiseRedisClient } from "../util/promise-redis-client";
 
 // session cache if no redis instance is provided
@@ -9,34 +9,34 @@ const sessions: Map<string, ICloud> = new Map<string, ICloud>();
 const CACHE_TTL_SECONDS: number = 60 * 60 * 24 * 30; // 30 days
 
 async function getOrCreateUserSession(config: Config, redisClient?: PromiseRedisClient): Promise<ICloud> {
-	const cachedSession: IExportedCloudSession | null = await loadSession(config, redisClient);
+	const cachedSession: ExportedICloudSession | null = await loadSession(config, redisClient);
 	return new Promise((resolve, reject) => {
 		const [username, password] = config.apiKey.split(":");
 		const instance: ICloud = new ICloud(cachedSession || {}, username, password);
 		if (cachedSession) {
-			console.log("Using cached iCloud session for", instance.clientId);
+			console.log("Using cached iCloud session", {clientId: instance.clientId});
 			resolve(instance);
 			return;
 		} else {
-			console.log("Creating new iCloud session for", instance.clientId);
+			console.log("Creating new iCloud session", {clientId: instance.clientId});
 		}
 		instance.on("err", err => {
 			console.error("Unable to create icloud client", err);
 			reject(err);
 		});
 		instance.on("ready", async () => {
-			console.log("iCloud client ready", instance.clientId);
+			console.log("iCloud client ready", {clientId: instance.clientId});
 			resolve(instance);
 		});
 		instance.on("sessionUpdate", () => {
-			console.log("Session updated", instance.clientId);
+			console.log("Session updated", {clientId: instance.clientId});
 			saveSession(config, instance, redisClient);
 		});
 	});
 }
 
 function saveSession(config: Config, iCloudInstance: ICloud, redisClient?: PromiseRedisClient): void {
-	const exportedSession: IExportedCloudSession = iCloudInstance.exportSession();
+	const exportedSession: ExportedICloudSession = iCloudInstance.exportSession();
 	const stringSession: string = JSON.stringify(exportedSession);
 	const sessionKey: string = getSessionKey(config);
 	if (redisClient) {
@@ -53,7 +53,7 @@ function getSessionKey(config: Config): string {
 async function loadSession(
 	config: Config,
 	redisClient?: PromiseRedisClient
-): Promise<IExportedCloudSession> {
+): Promise<ExportedICloudSession> {
 	const sessionKey: string = getSessionKey(config);
 	if (redisClient) {
 		try {

@@ -1,18 +1,25 @@
-import { Adapter, Config, Contact, ContactUpdate, ServerError } from "@clinq/bridge";
+import { Adapter, Config, Contact, ContactTemplate, ContactUpdate, ServerError } from "@clinq/bridge";
 import * as ICloud from "apple-icloud";
+import { head } from "lodash";
 import * as redis from "redis";
-import { deleteICloudContact, getAllICloudContacts, getICloudSession, updateICloudContact } from "./icloud";
-import { convertToClinqContact, getICloudPhoneNumberLabel } from "./mapper";
+import {
+	createICloudContact,
+	deleteICloudContact,
+	getAllICloudContacts,
+	getContactById,
+	getICloudSession,
+	updateICloudContact
+} from "./icloud";
+import { convertToClinqContact, convertToICloudContact, getICloudPhoneNumberLabel } from "./mapper";
 import { ICloudContact } from "./model/icloud.model";
-import { handleApiError } from "./util/error";
+import { handleICloudApiError } from "./util/api";
 import { PromiseRedisClient } from "./util/promise-redis-client";
 
 export class ICloudAdapter implements Adapter {
-
 	private redisClient: PromiseRedisClient;
 
 	constructor(redisUrl?: string) {
-		if(!redisUrl) {
+		if (!redisUrl) {
 			console.warn("No REDIS_URL url provided.");
 			return;
 		}
@@ -33,42 +40,51 @@ export class ICloudAdapter implements Adapter {
 			const contacts: ICloudContact[] = await getAllICloudContacts(session);
 			return contacts.map(convertToClinqContact);
 		} catch (e) {
-			handleApiError("Error fetching contacts", e);
+			handleICloudApiError("Error fetching contacts", e);
 		}
 	}
 
-	public async deleteContact(config: Config, id: string): Promise<void> {
+	public async deleteContact(config: Config, contactId: string): Promise<void> {
 		try {
 			const session: ICloud = await getICloudSession(config, this.redisClient);
-			const contacts: ICloudContact[] = await getAllICloudContacts(session);
-			const contactToDelete: ICloudContact = contacts.find(c => c.contactId === id);
-			await deleteICloudContact(session, contactToDelete);
+			const contact: ICloudContact = await getContactById(session, contactId);
+			await deleteICloudContact(session, contact);
+			console.log("Contact successfully deleted", { contactId });
 		} catch (e) {
-			handleApiError("Error deleting contact", e);
+			handleICloudApiError("Error deleting contact", e);
 		}
 	}
 
-	public async updateContact(config: Config, id: string, contact: ContactUpdate): Promise<Contact> {
+	public async createContact(config: Config, contact: ContactTemplate): Promise<Contact> {
 		try {
-			const session: ICloud = await getICloudSession(config,this.redisClient);
-			const contacts: ICloudContact[] = await getAllICloudContacts(session);
-			const contactToUpdate: ICloudContact = contacts.find(c => c.contactId === id);
-			if (!contactToUpdate) {
-				throw new Error("Contact unknown");
+			const session: ICloud = await getICloudSession(config, this.redisClient);
+			const iCloudContact: ICloudContact = convertToICloudContact(contact);
+			const { contacts }: { contacts: ICloudContact[] } = await createICloudContact(session, iCloudContact);
+			const createdContact: ICloudContact = head(contacts);
+			if (createdContact) {
+				console.log("Contact successfully created", { contactId: createdContact.contactId });
+				return convertToClinqContact(createdContact);
 			}
-			const updatedContact: ICloudContact = await updateICloudContact(session, {
-				...contactToUpdate,
-				firstName: contact.firstName,
-				lastName: contact.lastName,
-				companyName: contact.organization,
-				phones: contact.phoneNumbers.map(p => ({
-					field: p.phoneNumber,
-					label: getICloudPhoneNumberLabel(p.label)
-				}))
-			});
-			return convertToClinqContact(updatedContact);
+			console.log("Contact successfully created");
+			return null;
 		} catch (e) {
-			handleApiError("Error updating contact", e);
+			handleICloudApiError("Error creating contact", e);
+		}
+	}
+
+	public async updateContact(config: Config, contactId: string, contactUpdate: ContactUpdate): Promise<Contact> {
+		try {
+			const session: ICloud = await getICloudSession(config, this.redisClient);
+			const contact: ICloudContact = await getContactById(session, contactId);
+			const { contacts } = await updateICloudContact(session, {
+				...contact,
+				...convertToICloudContact(contactUpdate)
+			});
+			console.log("Contact successfully updated", { contactId });
+			const updatedContact: ICloudContact = head(contacts);
+			return updatedContact ? convertToClinqContact(updatedContact) : null;
+		} catch (e) {
+			handleICloudApiError("Error updating contact", e);
 		}
 	}
 }

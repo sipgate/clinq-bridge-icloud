@@ -1,4 +1,4 @@
-import { Contact, PhoneNumber, PhoneNumberLabel } from "@clinq/bridge";
+import { Contact, ContactTemplate, ContactUpdate, PhoneNumber, PhoneNumberLabel } from "@clinq/bridge";
 import { ICloudContact, ICloudPhoneNumberLabel } from "../model/icloud.model";
 
 function parsePhoneNumberLabel(label: string): ICloudPhoneNumberLabel {
@@ -53,15 +53,36 @@ function mapPhoneNumbers(c: ICloudContact): PhoneNumber[] {
 
 export function convertToClinqContact(icloudContact: ICloudContact): Contact {
 	const phoneNumbers: PhoneNumber[] = mapPhoneNumbers(icloudContact);
+	const { firstName, lastName, contactId, companyName, photo } = icloudContact;
 	return {
-		id: icloudContact.contactId || null,
+		id: contactId || null,
 		name: null,
-		firstName: icloudContact.firstName || null,
-		lastName: icloudContact.lastName || null,
-		organization: icloudContact.companyName || null,
+		firstName: firstName || null,
+		lastName: lastName || null,
+		organization: companyName || null,
 		email: parseEmailAddress(icloudContact),
 		phoneNumbers,
 		contactUrl: null,
-		avatarUrl: null
+		avatarUrl: photo ? photo.url : null
+	};
+}
+
+export function convertToICloudContact(contact: Contact | ContactTemplate | ContactUpdate): ICloudContact {
+	return {
+		emailAddresses: contact.email
+			? [
+					{
+						field: contact.email,
+						label: "WORK"
+					}
+			  ]
+			: [],
+		firstName: contact.firstName || null,
+		lastName: contact.lastName || null,
+		companyName: contact.organization,
+		phones: contact.phoneNumbers.map(p => ({
+			field: p.phoneNumber,
+			label: getICloudPhoneNumberLabel(p.label)
+		}))
 	};
 }

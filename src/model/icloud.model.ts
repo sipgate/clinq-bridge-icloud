@@ -1,12 +1,12 @@
 export interface ICloudContact {
 	firstName?: string;
 	lastName?: string;
-	notes: string;
-	contactId: string;
-	normalized: string;
-	prefix: string;
+	notes?: string;
+	contactId?: string;
+	normalized?: string;
+	prefix?: string;
 	companyName?: string;
-	phones: Array<{
+	phones?: Array<{
 		field: string;
 		label: string;
 	}>;
@@ -14,10 +14,20 @@ export interface ICloudContact {
 		field: string;
 		label: string;
 	}>;
-	etag: string;
-	middleName: string;
-	isCompany: boolean;
-	suffix: string;
+	etag?: string;
+	middleName?: string;
+	isCompany?: boolean;
+	suffix?: string;
+	photo?: {
+		signature: string;
+		url: string;
+		crop: {
+			x: number;
+			width: number;
+			y: number;
+			height: number;
+		};
+	};
 }
 
 export enum ICloudPhoneNumberLabel {
@@ -53,4 +63,8 @@ export interface IExportedCloudSession {
 	account: any;
 	logins: any[];
 	clientSettings: any;
+}
+
+export interface CreateContactResponse {
+	contacts: ICloudContact[];
 }
