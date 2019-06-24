@@ -76,10 +76,11 @@ export class ICloudAdapter implements Adapter {
 		try {
 			const session: ICloud = await getICloudSession(config, this.redisClient);
 			const contact: ICloudContact = await getContactById(session, contactId);
-			const { contacts } = await updateICloudContact(session, {
-				...contact,
+			const updateRequest: ICloudContact = {
+				contactId: contact.contactId,
 				...convertToICloudContact(contactUpdate)
-			});
+			};
+			const { contacts } = await updateICloudContact(session, updateRequest);
 			console.log("Contact successfully updated", { contactId });
 			const updatedContact: ICloudContact = head(contacts);
 			return updatedContact ? convertToClinqContact(updatedContact) : null;
