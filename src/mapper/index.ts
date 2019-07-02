@@ -79,7 +79,7 @@ export function convertToICloudContact(contact: Contact | ContactTemplate | Cont
 			: [],
 		firstName: contact.firstName || null,
 		lastName: contact.lastName || null,
-		companyName: contact.organization,
+		companyName: contact.organization || null,
 		phones: contact.phoneNumbers.map(p => ({
 			field: p.phoneNumber,
 			label: getICloudPhoneNumberLabel(p.label)

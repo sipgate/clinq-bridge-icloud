@@ -78,11 +78,12 @@ export class ICloudAdapter implements Adapter {
 			const contact: ICloudContact = await getContactById(session, contactId);
 			const updateRequest: ICloudContact = {
 				contactId: contact.contactId,
+				etag: contact.etag,
 				...convertToICloudContact(contactUpdate)
 			};
 			const { contacts } = await updateICloudContact(session, updateRequest);
-			console.log("Contact successfully updated", { contactId });
 			const updatedContact: ICloudContact = head(contacts);
+			console.log("Contact successfully updated", { contactId });
 			return updatedContact ? convertToClinqContact(updatedContact) : null;
 		} catch (e) {
 			handleICloudApiError("Error updating contact", e);
