@@ -28,7 +28,6 @@ export async function deleteICloudContact(iCloudSession: ICloud, contact: ICloud
 export async function getContactById(iCloudSession: ICloud, contactId: string): Promise<ICloudContact> {
 			const contacts: ICloudContact[] = await getAllICloudContacts(iCloudSession);
 			const contact: ICloudContact = contacts.find(c => c.contactId === contactId);
-			console.log("getContactById", contact);
 			if (!contact) {
 				console.warn("Contact not found", { contactId });
 				throw new ServerError(404, "Unknown contact");
