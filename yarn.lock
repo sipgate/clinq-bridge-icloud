@@ -129,9 +129,9 @@ ansi-styles@^3.2.1:
   dependencies:
     color-convert "^1.9.0"
 
-"apple-icloud@git://github.com/blesson3/iCloud-API.git#97c1103807be08ca3ffa8e9a0e7b065510eb75c7":
+"apple-icloud@git://github.com/codedrift/iCloud-API.git#97c1103807be08ca3ffa8e9a0e7b065510eb75c7":
   version "1.0.1"
-  resolved "git://github.com/blesson3/iCloud-API.git#97c1103807be08ca3ffa8e9a0e7b065510eb75c7"
+  resolved "git://github.com/codedrift/iCloud-API.git#97c1103807be08ca3ffa8e9a0e7b065510eb75c7"
   dependencies:
     cookie "^0.3.1"
     prompt "^1.0.0"

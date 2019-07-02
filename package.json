@@ -18,7 +18,7 @@
 	},
 	"dependencies": {
 		"@clinq/bridge": "^10.0.7",
-		"apple-icloud": "git://github.com/blesson3/iCloud-API.git#97c1103807be08ca3ffa8e9a0e7b065510eb75c7",
+		"apple-icloud": "git://github.com/codedrift/iCloud-API.git#97c1103807be08ca3ffa8e9a0e7b065510eb75c7",
 		"axios": "^0.19.0",
 		"lodash": "^4.17.11",
 		"redis": "^2.8.0",
